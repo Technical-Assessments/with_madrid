@@ -5,7 +5,7 @@ import requests
 from src.framex.utils import bisect
 
 
-API_BASE = os.getenv("API_BASE", "https://framex-dev.wadrid.net/api/")
+API_BASE = os.getenv("API_BASE", "https://framex-dev.wadrid.net/api/video")
 VIDEO_NAME = os.getenv("VIDEO_NAME", "Falcon Heavy Test Flight (Hosted Webcast)-wbSwFU6tY1c")
 
 
@@ -26,32 +26,24 @@ class Video(NamedTuple):
 
 
 
-
-
-
-
 class FrameX:
     """ Utility class to access the FrameX API """
 
-    def video(self, video: Text) -> Video:
-        r = requests.get(f"{API_BASE}video/{video}/")
+    def get_video(self, video: Text) -> Video:
+        r = requests.get(f"{API_BASE}/{video}/")
         return Video(**r.json())
 
-    def video_frame(self, video: Text, frame: int) -> bytes:
-        r = requests.get(f"{API_BASE}video/{video}/frame/{frame}/")
+    def get_video_frame(self, video: Text, frame: int) -> bytes:
+        r = requests.get(f"{API_BASE}/{video}/frame/{frame}/")
         return r.content
 
 
 class FrameXBisector:
-    """
-    Helps managing the display of images from the launch
-    """
-
-    BASE_URL = API_BASE
+    """ Helps managing the display of images from the launch """
 
     def __init__(self, name):
         self.api = FrameX()
-        self.video = self.api.video(name)
+        self.video = self.api.get_video(name)
         self._index = 0
         self.image = None
 
@@ -61,12 +53,10 @@ class FrameXBisector:
 
     @index.setter
     def index(self, v):
-        """
-        When a new index is written, download the new frame
-        """
+        """ When a new index is written, download the new frame """
 
         self._index = v
-        self.image = Frame(self.api.video_frame(self.video.name, v))
+        self.image = self.api.get_video_frame(self.video.name, v)
 
     @property
     def count(self):
@@ -76,28 +66,15 @@ class FrameXBisector:
 
 
 def main():
-    """
-    Runs a bisection algorithm on the frames of the video, the goal is
-    to figure at which exact frame the rocket takes off.
 
-    Images are displayed using pygame, but the interactivity happens in
-    the terminal as it is much easier to do.
-    """
+    bisector = FrameXBisector(VIDEO_NAME)
 
-
-    def tester(n):
-        """
-        Displays the current candidate to the user and asks them to
-        check if they see wildfire damages.
-        """
+    def tester(n: int, bisector: FrameXBisector):
 
         bisector.index = n
 
-        confirm_value = confirm(bisector.index)
-
         return confirm_value
 
-    bisector = FrameXBisector(VIDEO_NAME)
 
     culprit = bisect(bisector.count, tester)
     bisector.index = culprit

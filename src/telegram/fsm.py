@@ -1,22 +1,10 @@
-import logging
+from aiogram.dispatcher.filters import Text
 import aiogram.utils.markdown as md
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from aiogram.types import ParseMode
 from src.telegram.cancel import cancel_state
 from src.telegram.utils import Form, has_it_launched
-from src.telegram.setup import bot, dp
-
-
-
-
-import logging
-import aiogram.utils.markdown as md
-from aiogram import types
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from aiogram.types import ParseMode
-
+from src.telegram.setup import dp
 
 
 @dp.message_handler(commands="start")
@@ -41,7 +29,7 @@ async def greet(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["name"] = message.text
 
-    await Form.next()
+    await Form.pre_game.set()
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
     markup.add("Next")
     markup.add("Cancel")
@@ -64,12 +52,8 @@ async def game_request(message: types.Message):
     await message.reply("Do you want to play DidTheRocketLaunchedYet?", reply_markup=markup)
 
 
-
 @dp.message_handler(state=Form.in_game)
 async def process_gender(message: types.Message):
-
-    # if message.text == "Play the game!":
-    # Show first frame
     await Form.not_launched.set()
     await has_it_launched(message)
 
@@ -78,12 +62,13 @@ async def process_gender(message: types.Message):
 async def process_next_frame(message: types.Message, state: FSMContext):
     print("not launched !")
     await message.reply(
-        "I see, so it hasn't launched yet...\n so, has it now?"
+        "I see, so it hasn't launched yet..."
         , reply_markup=types.ReplyKeyboardRemove())
 
     # Process new frame
 
     await has_it_launched(message)
+
 
 @dp.message_handler(state=Form.launched)
 async def end_game(message: types.Message, state: FSMContext):
