@@ -13,6 +13,6 @@ class Form(StatesGroup):
 
 async def has_it_launched(message: types.Message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-    markup.add("Yes")
-    markup.add("No")
+    markup.add("Yes", "No")
+    markup.add("Cancel")
     await message.reply("Has the rocket launched yet?", reply_markup=markup)
