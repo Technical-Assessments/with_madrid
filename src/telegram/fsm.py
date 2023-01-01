@@ -52,7 +52,7 @@ async def S002_game_request(message: Message):
 async def S003_send_first_frame(message: Message, state: FSMContext):
     """ Start the game by sending the first video frame """
 
-    # Create instance of bisector to pass it across states
+    # Create an instance of bisector to pass it across states
     await state.update_data(bisector=FrameXBisector())
 
     # Set next state & send first video frame
@@ -71,9 +71,8 @@ async def S004_narrow_frames_down(message: Message, state: FSMContext):
     if bisector.launch_frame_found():
         return await end_game(message, state)
 
-    # Bisect current frames and update bisector state
+    # Bisect current frames
     bisector.bisect(tester=tester)
-    await state.update_data(bisector=bisector)
 
     # Meaningless commnent to allow keyboard remove
     response = "I see...so this is not the launch frame, but we are getting closer!"
@@ -81,6 +80,6 @@ async def S004_narrow_frames_down(message: Message, state: FSMContext):
 
     # Update current frame to trigger a new frame request
     bisector.current_frame = bisector.get_median()
+    await state.update_data(bisector=bisector)
 
-    # Process next frame
     return await has_it_launched(message, state)
