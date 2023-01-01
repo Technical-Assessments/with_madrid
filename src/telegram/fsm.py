@@ -16,7 +16,7 @@ async def S001_start(message: types.Message):
     await message.reply("Hi there! What's your name?")
 
 
-@dp.message_handler(state="*", ignore_case=True, commands="cancel")
+@dp.message_handler(state="*", commands="cancel")
 @dp.message_handler(Text(equals="cancel", ignore_case=True), state="*")
 async def SAny_cancel_handler(message: types.Message, state: FSMContext):
     """ Allow the user to cancel at any point by typing or commanding `cancel` """
