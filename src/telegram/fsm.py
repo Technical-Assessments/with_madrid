@@ -62,11 +62,11 @@ async def S003_send_first_frame(message: Message, state: FSMContext):
 
 @dp.message_handler(state=Form.not_launched)
 async def S004_narrow_frames_down(message: Message, state: FSMContext):
-    """  """
+    """ Ask the user to confirm launch status to narrow the launch frame down """
 
-    data = await state.get_data()
-    bisector:FrameXBisector = data.get("bisector")
-    tester = True if message.text == "Yes" else False
+    data     : dict           = await state.get_data()
+    bisector : FrameXBisector = data.get("bisector")
+    tester   : bool           = True if message.text == "Yes" else False
 
     if bisector.launch_frame_found():
         return await end_game(message, state)

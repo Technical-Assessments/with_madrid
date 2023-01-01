@@ -29,14 +29,14 @@ class FrameXBisector:
 
     def launch_frame_found(self) -> bool:
         """ Boolean logic to narrow down the launch video frame """
-        # return self.left_frame + 1 < self.right_frame
-        return self.right_frame == self.left_frame + 1
+        return self.left_frame + 1 == self.right_frame
 
     def get_median(self) -> int:
         """ Return the Median value from two ends """
         return int((self.left_frame + self.right_frame) / 2)
 
     def bisect(self, tester: bool) -> None:
+        """ Performs a binary search """
 
         mid = self.get_median()
 
