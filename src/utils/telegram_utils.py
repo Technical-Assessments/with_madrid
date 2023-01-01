@@ -1,8 +1,10 @@
 import logging
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram import types
+from aiogram.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from src.telegram.setup import bot
 from aiogram.dispatcher import FSMContext
+from src.utils.framex_utils import FrameXBisector
+
 
 # States
 class Form(StatesGroup):
@@ -12,40 +14,51 @@ class Form(StatesGroup):
     not_launched = State()
 
 
-async def has_it_launched(message: types.Message, state: FSMContext):
-
-    data = await state.get_data()
-    bisector = data.get("bisector")
+async def has_it_launched(message: Message, state: FSMContext):
+    """ Helper function to send new video frames to a Telegram chat room """
+    data     : dict           = await state.get_data()
+    bisector : FrameXBisector = data.get("bisector")
+    chat_id  : int            = message.chat.id
+    image    : bytes          = bisector.image_frame
+    caption  : str            = f"Frame: {bisector.current_frame}"
 
     # Send Frame
-    await bot.send_photo(
-        chat_id=message.chat.id,
-        photo=bisector.image_frame,
-        caption=f"Frame: {bisector.current_frame}",
-        reply_markup=types.ReplyKeyboardRemove())
+    await bot.send_photo(chat_id=chat_id, photo=image, caption=caption, reply_markup=ReplyKeyboardRemove())
 
     # Draw Keyboard Options
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
+    markup = ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
     markup.add("Yes", "No")
     markup.add("Cancel")
 
-    await bot.send_message(
-        chat_id=message.chat.id,
-        text="Has the rocket launched yet?",
-        reply_markup=markup)
+    await bot.send_message(chat_id=chat_id, text="Has the rocket launched yet?", reply_markup=markup)
 
 
-async def cancel_state(message: types.Message, state: FSMContext):
+async def cancel_game(message: Message, state: FSMContext):
     """ Allow the user to cancel at any point by typing or commanding `cancel` """
 
-    # current_state = await state.get_state()
     # if current_state is None: return
-
+    current_state = await state.get_state()
     data = await state.get_data()
     current_user = data.get("current_user")
 
     logging.info(f"Cancelling state {current_state} for current user: {current_user} ")
+
     # Cancel state and inform user about it
     await state.finish()
-    # And remove keyboard (just in case)
-    await message.reply("Ok, bye :(", reply_markup=types.ReplyKeyboardRemove())
+    await message.reply("Ok, bye :(", reply_markup=ReplyKeyboardRemove())
+
+
+async def end_game(message: Message, state: FSMContext):
+
+
+    data         : dict           = await state.get_data()
+    current_user : str            = data.get("current_user")
+    bisector     : FrameXBisector = data.get("bisector")
+
+    logging.info(f"Game finished successfuly for current user: {current_user} ")
+
+    chat_id = message.chat.id
+    text = f"Cheers!! Take-off frame found at step {bisector.step} => {bisector.right_frame}"
+
+    await bot.send_message(chat_id=chat_id, text=text, reply_markup=ReplyKeyboardRemove())
+    await state.finish()

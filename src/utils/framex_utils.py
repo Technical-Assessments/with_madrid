@@ -1,3 +1,4 @@
+import logging
 from src.framex_api.framex import FrameX
 from src.utils.type_helpers import Video
 from src.telegram.setup import config
@@ -26,15 +27,16 @@ class FrameXBisector:
         self._current_frame = new_frame
         self.image_frame = self.api.get_video_frame(self.video.name, new_frame)
 
-    def launch_frame_not_found(self) -> bool:
+    def launch_frame_found(self) -> bool:
         """ Boolean logic to narrow down the launch video frame """
-        return self.left_frame + 1 < self.right_frame
+        # return self.left_frame + 1 < self.right_frame
+        return self.right_frame == self.left_frame + 1
 
-    def get_median(self):
+    def get_median(self) -> int:
         """ Return the Median value from two ends """
         return int((self.left_frame + self.right_frame) / 2)
 
-    def bisect(self, tester: bool):
+    def bisect(self, tester: bool) -> None:
 
         mid = self.get_median()
 
@@ -44,3 +46,4 @@ class FrameXBisector:
             self.left_frame = mid
 
         self.current_frame = self.get_median()
+        logging.info(f"Step {self.step} => left: {self.left_frame} <-----> right: {self.right_frame}")
