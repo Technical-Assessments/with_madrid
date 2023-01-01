@@ -1,29 +1,46 @@
-from typing import Callable
+from src.framex_api.framex import FrameX
+from src.utils.type_helpers import Video
+from src.telegram.setup import config
 
-def bisect(n: int, tester: Callable):
-    """
-    Runs a bisection.
+class FrameXBisector:
+    """  """
 
-    - `n` is the number of elements to be bisected
-    - `mapper` is a callable that will transform an integer from "0" to "n"
-      into a value that can be tested
-    - `tester` returns true if the value is within the "right" range
-    """
+    def __init__(self):
+        self.step           : int = 0
+        self.api            : FrameX = FrameX()
+        self.video          : Video = self.api.get_video(config.framex_video)
+        self.total_frames   : int = self.video.frames
+        self.left_frame     : int = 0
+        self.right_frame    : int = self.total_frames - 1
+        self._current_frame : int = self.get_median()
+        self.image_frame    : bytes = self.api.get_video_frame(self.video.name, self.current_frame)
 
-    if n < 1:
-        raise ValueError("Cannot bissect an empty array")
+    @property
+    def current_frame(self):
+        return self._current_frame
 
-    left = 0
-    right = n - 1
+    @current_frame.setter
+    def current_frame(self, new_frame: int):
+        """ Reactive method to retreive next video frame """
+        self.step += 1
+        self._current_frame = new_frame
+        self.image_frame = self.api.get_video_frame(self.video.name, new_frame)
 
-    while left + 1 < right:
-        mid = int((left + right) / 2)
+    def launch_frame_not_found(self) -> bool:
+        """ Boolean logic to narrow down the launch video frame """
+        return self.left_frame + 1 < self.right_frame
 
-        val = mid
+    def get_median(self):
+        """ Return the Median value from two ends """
+        return int((self.left_frame + self.right_frame) / 2)
 
-        if tester(val):
-            right = mid
+    def bisect(self, tester: bool):
+
+        mid = self.get_median()
+
+        if tester:
+            self.right_frame = mid
         else:
-            left = mid
+            self.left_frame = mid
 
-    return right
+        self.current_frame = self.get_median()

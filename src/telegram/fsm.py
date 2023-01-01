@@ -6,44 +6,30 @@ from src.telegram.cancel import cancel_state
 from src.utils.telegram_utils import Form, has_it_launched
 from src.telegram.setup import dp, bot
 from src.telegram.setup import bisector
-import requests
 
 
 @dp.message_handler(commands="start")
-async def cmd_start(message: types.Message):
-    # Set state
-    await Form.name.set()
+async def S001_start(message: types.Message):
+    """ Be polite and ask the user for his/her name """
+
+    await Form.pre_game.set()
     await message.reply("Hi there! What's your name?")
 
 
 # You can use state "*" if you need to handle all states
 @dp.message_handler(state="*", commands="cancel")
 @dp.message_handler(Text(equals="cancel", ignore_case=True), state="*")
-async def cancel_handler(message: types.Message, state: FSMContext):
+async def SAny_cancel_handler(message: types.Message, state: FSMContext):
+    """ Allow the user to cancel at any point by typing or commanding `cancel` """
+
     return await cancel_state(message, state)
 
 
-@dp.message_handler(state=Form.name)
-async def greet(message: types.Message, state: FSMContext):
-    """
-    Process user name
-    """
-    async with state.proxy() as data:
-        data["name"] = message.text
-
-    await Form.pre_game.set()
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-    markup.add("Next")
-    markup.add("Cancel")
-
-    await message.reply(
-        md.text(f"Hi! Nice to meet you {md.bold(message.text)}"),
-        reply_markup=markup)
-
-
 @dp.message_handler(state=Form.pre_game)
-async def game_request(message: types.Message):
-    # Update state and data
+async def S002_game_request(message: types.Message):
+    """ Ask the user if he feels playful """
+
+    await message.reply(md.text(f"Hi! Nice to meet you {md.bold(message.text)}"))
     await Form.in_game.set()
 
     # Configure ReplyKeyboardMarkup
@@ -51,43 +37,36 @@ async def game_request(message: types.Message):
     markup.add("Play the game!")
     markup.add("Cancel")
 
-    await message.reply("Do you want to play DidTheRocketLaunchedYet?", reply_markup=markup)
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text="Do you want to play DidTheRocketLaunchedYet?",
+        reply_markup=markup)
+
 
 @dp.message_handler(state=Form.in_game)
-async def process_next_frame(message: types.Message, state: FSMContext):
+async def S003_send_first_frame(message: types.Message):
+    """ Start the game by sending the first video frame """
     await Form.not_launched.set()
-    await bot.send_photo(
-        chat_id=message.chat.id,
-        photo=bisector.image
-    )
     await has_it_launched(message)
 
 
 @dp.message_handler(state=Form.not_launched)
-async def process_next_frame(message: types.Message, state: FSMContext):
-
+async def S004_narrow_frames_down(message: types.Message, state: FSMContext):
+    """  """
     tester = True if message.text == "Yes" else False
 
     if bisector.launch_frame_not_found():
-        print(f"Current Frame -----> {bisector.current_frame}")
         bisector.bisect(tester=tester)
+        print(f"Step {bisector.step} => left: {bisector.left_frame} <-----> right: {bisector.right_frame}")
 
-        await message.reply(
-            "I see, so it hasn't launched yet..."
-            , reply_markup=types.ReplyKeyboardRemove())
-        await bot.send_photo(
-            chat_id=message.chat.id,
-            photo=bisector.image
-        )
+        await message.reply("I see, so it hasn't launched yet...", reply_markup=types.ReplyKeyboardRemove())
         await has_it_launched(message)
 
     else:
-        await Form.launched.set()
+        text = f"Cheers!! Take-off frame found at step {bisector.step} => {bisector.right_frame}"
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=text,
+            reply_markup=types.ReplyKeyboardRemove())
 
-
-@dp.message_handler(state=Form.launched)
-async def end_game(message: types.Message, state: FSMContext):
-    await message.reply(
-        f"NOICE !! Take-off frame is {bisector.right_frame}",
-        reply_markup=types.ReplyKeyboardRemove())
-    await state.finish()
+        await state.finish()
