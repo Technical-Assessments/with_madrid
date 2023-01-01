@@ -1,6 +1,5 @@
 from aiogram.utils import executor
 from src.telegram.fsm import dp
-from src.telegram.cancel import dp
 
 
 if __name__ == '__main__':

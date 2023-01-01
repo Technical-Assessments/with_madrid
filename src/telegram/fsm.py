@@ -2,9 +2,10 @@ import logging
 import aiogram.utils.markdown as md
 from aiogram import types
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
 from src.utils.telegram_utils import Form, has_it_launched
-from src.telegram.setup import dp, bot
-from src.telegram.setup import bisector
+from src.telegram.setup import dp, bot, bisector
+from src.telegram.cancel import cancel_state
 
 
 @dp.message_handler(commands="start")
@@ -13,6 +14,14 @@ async def S001_start(message: types.Message):
 
     await Form.pre_game.set()
     await message.reply("Hi there! What's your name?")
+
+
+@dp.message_handler(state="*", ignore_case=True, commands="cancel")
+@dp.message_handler(Text(equals="cancel", ignore_case=True), state="*")
+async def SAny_cancel_handler(message: types.Message, state: FSMContext):
+    """ Allow the user to cancel at any point by typing or commanding `cancel` """
+
+    return await cancel_state(message, state)
 
 
 @dp.message_handler(state=Form.pre_game)

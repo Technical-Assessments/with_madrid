@@ -1,16 +1,6 @@
 import logging
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from src.telegram.setup import dp
-
-
-@dp.message_handler(state="*", commands="cancel")
-@dp.message_handler(Text(equals="cancel", ignore_case=True), state="*")
-async def SAny_cancel_handler(message: types.Message, state: FSMContext):
-    """ Allow the user to cancel at any point by typing or commanding `cancel` """
-
-    return await cancel_state(message, state)
 
 
 async def cancel_state(message: types.Message, state: FSMContext):
