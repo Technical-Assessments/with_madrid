@@ -5,7 +5,6 @@ from aiogram.dispatcher.filters import Text
 from src.telegram.setup import dp
 
 
-# You can use state "*" if you need to handle all states
 @dp.message_handler(state="*", commands="cancel")
 @dp.message_handler(Text(equals="cancel", ignore_case=True), state="*")
 async def SAny_cancel_handler(message: types.Message, state: FSMContext):
@@ -15,9 +14,8 @@ async def SAny_cancel_handler(message: types.Message, state: FSMContext):
 
 
 async def cancel_state(message: types.Message, state: FSMContext):
-    """
-    Allow user to cancel any action
-    """
+    """ Allow the user to cancel at any point by typing or commanding `cancel` """
+
     current_state = await state.get_state()
     if current_state is None: return
 
