@@ -11,7 +11,8 @@ from src.telegram.setup import dp, bot
 async def S001_start(message: Message, state: FSMContext):
     """ Be polite and ask the user for his/her name """
 
-    user = f"{message.from_user.first_name} {message.from_user.last_name}"
+    user = f"{message.from_user.first_name} {message.from_user.last_name or ''}"
+    chat_id = message.chat.id
     await state.update_data(current_user=user)
     logging.info(f"Conversation started with {user}")
 
@@ -21,29 +22,28 @@ async def S001_start(message: Message, state: FSMContext):
     markup.add("Nice to meet you Bot!")
     markup.add("Cancel")
 
-    await bot.send_message(chat_id=message.chat.id, text=f"Hello {user} !", reply_markup=markup)
+    await bot.send_message(chat_id=chat_id, text=f"Hello {user} !", reply_markup=markup)
 
 
 @dp.message_handler(state="*", commands="cancel")
 @dp.message_handler(Text(equals="cancel", ignore_case=True), state="*")
 async def SAny_cancel_handler(message: Message, state: FSMContext):
     """ Allow the user to cancel at any point by typing or commanding `cancel` """
-
     return await cancel_game(message, state)
 
 
 @dp.message_handler(state=Form.pre_game)
 async def S002_game_request(message: Message):
     """ Ask the user if he feels playful """
+    
     await Form.in_game.set()
-
-    chat_id = message.chat.id
 
     # Configure ReplyKeyboardMarkup
     markup = ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
     markup.add("Play the game!")
     markup.add("Cancel")
 
+    chat_id = message.chat.id
     text = "Do you want to play DidTheRocketLaunchedYet?"
     await bot.send_message(chat_id=chat_id, text=text, reply_markup=markup)
 

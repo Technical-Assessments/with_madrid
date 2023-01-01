@@ -30,32 +30,31 @@ async def has_it_launched(message: Message, state: FSMContext):
     markup.add("Yes", "No")
     markup.add("Cancel")
 
-    await bot.send_message(chat_id=chat_id, text="Has the rocket launched yet?", reply_markup=markup)
+    text = "Has the rocket launched yet?"
+    await bot.send_message(chat_id=chat_id, text=text, reply_markup=markup)
 
 
 async def cancel_game(message: Message, state: FSMContext):
     """ Allow the user to cancel at any point by typing or commanding `cancel` """
 
-    # if current_state is None: return
     current_state = await state.get_state()
     data = await state.get_data()
     current_user = data.get("current_user")
 
-    logging.info(f"Cancelling state {current_state} for current user: {current_user} ")
-
     # Cancel state and inform user about it
+    logging.info(f"Cancelling state {current_state} for current user: {current_user} ")
     await state.finish()
     await message.reply("Ok, bye :(", reply_markup=ReplyKeyboardRemove())
 
 
 async def end_game(message: Message, state: FSMContext):
-
+    """ Returns the launch frame and ends the game """
 
     data         : dict           = await state.get_data()
     current_user : str            = data.get("current_user")
     bisector     : FrameXBisector = data.get("bisector")
 
-    logging.info(f"Game finished successfuly for current user: {current_user} ")
+    logging.info(f"Game finished successfuly for current user: {current_user}")
 
     chat_id = message.chat.id
     text = f"Cheers!! Take-off frame found at step {bisector.step} => {bisector.right_frame}"
