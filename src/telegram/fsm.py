@@ -75,6 +75,8 @@ async def S004_narrow_frames_down(message: types.Message, state: FSMContext):
         await has_it_launched(message)
 
     else:
+        await state.finish()
+        
         data = await state.get_data()
         current_user = data.get("current_user")
         logging.info(f"Game finished successfuly for current user: {current_user} ")
@@ -84,5 +86,3 @@ async def S004_narrow_frames_down(message: types.Message, state: FSMContext):
             chat_id=message.chat.id,
             text=text,
             reply_markup=types.ReplyKeyboardRemove())
-
-        await state.finish()

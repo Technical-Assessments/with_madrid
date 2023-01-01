@@ -18,6 +18,7 @@ async def has_it_launched(message: types.Message):
     await bot.send_photo(
         chat_id=message.chat.id,
         photo=bisector.image_frame,
+        caption=f"Frame: {bisector.current_frame}",
         reply_markup=types.ReplyKeyboardRemove())
 
     # Draw Keyboard Options
