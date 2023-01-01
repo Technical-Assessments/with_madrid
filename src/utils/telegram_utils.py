@@ -1,8 +1,8 @@
+import logging
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import types
-from src.telegram.setup import bot
-from src.telegram.setup import bisector
-
+from src.telegram.setup import bot, bisector
+from aiogram.dispatcher import FSMContext
 
 # States
 class Form(StatesGroup):
@@ -29,3 +29,19 @@ async def has_it_launched(message: types.Message):
         chat_id=message.chat.id,
         text="Has the rocket launched yet?",
         reply_markup=markup)
+
+
+async def cancel_state(message: types.Message, state: FSMContext):
+    """ Allow the user to cancel at any point by typing or commanding `cancel` """
+
+    current_state = await state.get_state()
+    if current_state is None: return
+
+    data = await state.get_data()
+    current_user = data.get("current_user")
+
+    logging.info(f"Cancelling state {current_state} for current user: {current_user} ")
+    # Cancel state and inform user about it
+    await state.finish()
+    # And remove keyboard (just in case)
+    await message.reply("Ok, bye :(", reply_markup=types.ReplyKeyboardRemove())

@@ -1,19 +1,30 @@
 import logging
-import aiogram.utils.markdown as md
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from src.utils.telegram_utils import Form, has_it_launched
 from src.telegram.setup import dp, bot, bisector
-from src.telegram.cancel import cancel_state
+from src.utils.telegram_utils import cancel_state
 
 
 @dp.message_handler(commands="start")
-async def S001_start(message: types.Message):
+async def S001_start(message: types.Message, state: FSMContext):
     """ Be polite and ask the user for his/her name """
+    user = f"{message.from_user.first_name} {message.from_user.last_name}"
+    await state.update_data(current_user=user)
+    
+    logging.info(f"Conversation started with {user}")
 
     await Form.pre_game.set()
-    await message.reply("Hi there! What's your name?")
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
+    markup.add("Nice to meet you Bot!")
+    markup.add("Cancel")
+
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=f"Hello {user} !",
+        reply_markup=markup)
 
 
 @dp.message_handler(state="*", commands="cancel")
@@ -28,7 +39,6 @@ async def SAny_cancel_handler(message: types.Message, state: FSMContext):
 async def S002_game_request(message: types.Message):
     """ Ask the user if he feels playful """
 
-    await message.reply(md.text(f"Hi! Nice to meet you {md.bold(message.text)}"))
     await Form.in_game.set()
 
     # Configure ReplyKeyboardMarkup
