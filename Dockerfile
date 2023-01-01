@@ -26,7 +26,7 @@ WORKDIR /usr/app
 COPY --chown=python:python --from=build /usr/app/venv ./venv
 COPY --chown=python:python ./src/ ./src/
 COPY --chown=python:python main.py .
-COPY --chown=python:python .env .
+# COPY --chown=python:python .env .
 
 USER 999
 
