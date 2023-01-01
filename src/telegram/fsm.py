@@ -3,8 +3,10 @@ import aiogram.utils.markdown as md
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from src.telegram.cancel import cancel_state
-from src.telegram.utils import Form, has_it_launched
-from src.telegram.setup import dp
+from src.utils.telegram_utils import Form, has_it_launched
+from src.telegram.setup import dp, bot
+from src.telegram.setup import bisector
+import requests
 
 
 @dp.message_handler(commands="start")
@@ -51,26 +53,41 @@ async def game_request(message: types.Message):
 
     await message.reply("Do you want to play DidTheRocketLaunchedYet?", reply_markup=markup)
 
-
 @dp.message_handler(state=Form.in_game)
-async def process_gender(message: types.Message):
+async def process_next_frame(message: types.Message, state: FSMContext):
     await Form.not_launched.set()
+    await bot.send_photo(
+        chat_id=message.chat.id,
+        photo=bisector.image
+    )
     await has_it_launched(message)
 
 
 @dp.message_handler(state=Form.not_launched)
 async def process_next_frame(message: types.Message, state: FSMContext):
-    print("not launched !")
-    await message.reply(
-        "I see, so it hasn't launched yet..."
-        , reply_markup=types.ReplyKeyboardRemove())
 
-    # Process new frame
+    tester = True if message.text == "Yes" else False
 
-    await has_it_launched(message)
+    if bisector.launch_frame_not_found():
+        print(f"Current Frame -----> {bisector.current_frame}")
+        bisector.bisect(tester=tester)
+
+        await message.reply(
+            "I see, so it hasn't launched yet..."
+            , reply_markup=types.ReplyKeyboardRemove())
+        await bot.send_photo(
+            chat_id=message.chat.id,
+            photo=bisector.image
+        )
+        await has_it_launched(message)
+
+    else:
+        await Form.launched.set()
 
 
 @dp.message_handler(state=Form.launched)
 async def end_game(message: types.Message, state: FSMContext):
-    await message.reply("NOICE !!", reply_markup=types.ReplyKeyboardRemove())
+    await message.reply(
+        f"NOICE !! Take-off frame is {bisector.right_frame}",
+        reply_markup=types.ReplyKeyboardRemove())
     await state.finish()
