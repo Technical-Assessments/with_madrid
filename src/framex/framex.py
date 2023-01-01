@@ -55,9 +55,16 @@ class FrameXBisector:
         self.total_frames   : int = self.video.frames
         self.left_frame     : int = 0
         self.right_frame    : int = self.total_frames - 1
-        self.current_frame  : int = int((self.left_frame + self.right_frame) / 2)
-        self.image          : bytes = self.api.get_video_frame(self.video.name, self.current_frame)
+        self._current_frame  : int = int((self.left_frame + self.right_frame) / 2)
+        self.image_frame    : bytes = self.api.get_video_frame(self.video.name, self.current_frame)
 
+    @property
+    def current_frame(self):
+        return self._current_frame
+
+    @current_frame.setter
+    def update_image_frame(self):
+        self.image_frame = self.api.get_video_frame(self.video.name, self.current_frame)
 
     def launch_frame_not_found(self):
         return self.left_frame + 1 < self.right_frame
@@ -69,6 +76,7 @@ class FrameXBisector:
 
         # while self.left_frame + 1 < self.right_frame:
         mid = int((self.left_frame + self.right_frame) / 2)
+        self._current_frame = mid
 
         if tester:
             self.right_frame = mid
