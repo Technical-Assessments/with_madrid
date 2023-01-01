@@ -12,7 +12,7 @@ async def S001_start(message: types.Message, state: FSMContext):
     """ Be polite and ask the user for his/her name """
     user = f"{message.from_user.first_name} {message.from_user.last_name}"
     await state.update_data(current_user=user)
-    
+
     logging.info(f"Conversation started with {user}")
 
     await Form.pre_game.set()
@@ -68,10 +68,17 @@ async def S004_narrow_frames_down(message: types.Message, state: FSMContext):
         bisector.bisect(tester=tester)
         logging.info(f"Step {bisector.step} => left: {bisector.left_frame} <-----> right: {bisector.right_frame}")
 
-        await message.reply("I see, so it hasn't launched yet...", reply_markup=types.ReplyKeyboardRemove())
+        await message.reply(
+            "I see...so this is not the launch frame, but we are getting closer!",
+            reply_markup=types.ReplyKeyboardRemove())
+
         await has_it_launched(message)
 
     else:
+        data = await state.get_data()
+        current_user = data.get("current_user")
+        logging.info(f"Game finished successfuly for current user: {current_user} ")
+
         text = f"Cheers!! Take-off frame found at step {bisector.step} => {bisector.right_frame}"
         await bot.send_message(
             chat_id=message.chat.id,
