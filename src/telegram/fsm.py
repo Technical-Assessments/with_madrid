@@ -65,7 +65,7 @@ async def S004_narrow_frames_down(message: Message, state: FSMContext):
     """ Ask the user to confirm launch status to narrow the launch frame down """
 
     data     : dict           = await state.get_data()
-    bisector : FrameXBisector = data.get("bisector")
+    bisector : FrameXBisector = data["bisector"]
     tester   : bool           = True if message.text == "Yes" else False
 
     if bisector.launch_frame_found():
@@ -79,8 +79,8 @@ async def S004_narrow_frames_down(message: Message, state: FSMContext):
     response = "I see...so this is not the launch frame, but we are getting closer!"
     await message.reply(response, reply_markup=ReplyKeyboardRemove())
 
-    # Update current rame to trigger a new frame request
+    # Update current frame to trigger a new frame request
     bisector.current_frame = bisector.get_median()
-    
+
     # Process next frame
     return await has_it_launched(message, state)

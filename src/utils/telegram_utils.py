@@ -17,7 +17,7 @@ class Form(StatesGroup):
 async def has_it_launched(message: Message, state: FSMContext):
     """ Helper function to send new video frames to a Telegram chat room """
     data     : dict           = await state.get_data()
-    bisector : FrameXBisector = data.get("bisector")
+    bisector : FrameXBisector = data["bisector"]
     chat_id  : int            = message.chat.id
     image    : bytes          = bisector.image_frame
     caption  : str            = f"Frame: {bisector.current_frame}"
@@ -51,8 +51,8 @@ async def end_game(message: Message, state: FSMContext):
     """ Returns the launch frame and ends the game """
 
     data         : dict           = await state.get_data()
-    current_user : str            = data.get("current_user")
-    bisector     : FrameXBisector = data.get("bisector")
+    current_user : str            = data["current_user"]
+    bisector     : FrameXBisector = data["bisector"]
 
     logging.info(f"Game finished successfuly for current user: {current_user}")
 
