@@ -1,8 +1,7 @@
-from aiogram.dispatcher.filters import Text
+import logging
 import aiogram.utils.markdown as md
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from src.telegram.cancel import cancel_state
 from src.utils.telegram_utils import Form, has_it_launched
 from src.telegram.setup import dp, bot
 from src.telegram.setup import bisector
@@ -48,7 +47,7 @@ async def S004_narrow_frames_down(message: types.Message, state: FSMContext):
 
     if bisector.launch_frame_not_found():
         bisector.bisect(tester=tester)
-        print(f"Step {bisector.step} => left: {bisector.left_frame} <-----> right: {bisector.right_frame}")
+        logging.info(f"Step {bisector.step} => left: {bisector.left_frame} <-----> right: {bisector.right_frame}")
 
         await message.reply("I see, so it hasn't launched yet...", reply_markup=types.ReplyKeyboardRemove())
         await has_it_launched(message)

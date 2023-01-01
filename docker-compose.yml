@@ -1,9 +1,0 @@
-version: "3.6"
-
-services:
-  fsm-production:
-    container_name: fsm-bot
-    restart: always
-    build:
-      context: .
-      target: prod

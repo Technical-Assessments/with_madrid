@@ -1,3 +1,6 @@
+local:
+	clear && python main.py
+	
 refactor:
 	clear &&\
 	git add . &&\
@@ -7,12 +10,3 @@ refactor:
 tidy:
 	clear &&\
 	pip list --format freeze > requirements.txt
-
-docker-prod:
-	clear
-	$(info 🔥 Environment: Production 🔥)
-	docker system prune -a -f
-	docker network prune -f
-	docker-compose -f docker-compose.yml stop
-	docker-compose -f docker-compose.yml down --remove-orphans
-	docker-compose -f docker-compose.yml up --build fsm-production
