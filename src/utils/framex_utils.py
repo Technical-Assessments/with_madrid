@@ -45,5 +45,4 @@ class FrameXBisector:
         else:
             self.left_frame = mid
 
-        self.current_frame = self.get_median()
         logging.info(f"Step {self.step} => left: {self.left_frame} <-----> right: {self.right_frame}")

@@ -35,7 +35,7 @@ async def SAny_cancel_handler(message: Message, state: FSMContext):
 @dp.message_handler(state=Form.pre_game)
 async def S002_game_request(message: Message):
     """ Ask the user if he feels playful """
-    
+
     await Form.in_game.set()
 
     # Configure ReplyKeyboardMarkup
@@ -79,5 +79,8 @@ async def S004_narrow_frames_down(message: Message, state: FSMContext):
     response = "I see...so this is not the launch frame, but we are getting closer!"
     await message.reply(response, reply_markup=ReplyKeyboardRemove())
 
+    # Update current rame to trigger a new frame request
+    bisector.current_frame = bisector.get_median()
+    
     # Process next frame
     return await has_it_launched(message, state)
