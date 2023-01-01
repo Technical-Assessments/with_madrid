@@ -16,15 +16,6 @@ async def S001_start(message: types.Message):
     await message.reply("Hi there! What's your name?")
 
 
-# You can use state "*" if you need to handle all states
-@dp.message_handler(state="*", commands="cancel")
-@dp.message_handler(Text(equals="cancel", ignore_case=True), state="*")
-async def SAny_cancel_handler(message: types.Message, state: FSMContext):
-    """ Allow the user to cancel at any point by typing or commanding `cancel` """
-
-    return await cancel_state(message, state)
-
-
 @dp.message_handler(state=Form.pre_game)
 async def S002_game_request(message: types.Message):
     """ Ask the user if he feels playful """
