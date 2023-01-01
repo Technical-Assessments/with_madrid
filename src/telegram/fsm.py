@@ -2,9 +2,9 @@ import logging
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from src.utils.telegram_utils import Form, has_it_launched
-from src.telegram.setup import dp, bot, bisector
-from src.utils.telegram_utils import cancel_state
+from src.utils.framex_utils import FrameXBisector
+from src.utils.telegram_utils import Form, has_it_launched, cancel_state
+from src.telegram.setup import dp, bot
 
 
 @dp.message_handler(commands="start")
@@ -53,32 +53,38 @@ async def S002_game_request(message: types.Message):
 
 
 @dp.message_handler(state=Form.in_game)
-async def S003_send_first_frame(message: types.Message):
+async def S003_send_first_frame(message: types.Message, state: FSMContext):
     """ Start the game by sending the first video frame """
+    await state.update_data(bisector=FrameXBisector())
     await Form.not_launched.set()
-    await has_it_launched(message)
+    await has_it_launched(message, state)
 
 
 @dp.message_handler(state=Form.not_launched)
 async def S004_narrow_frames_down(message: types.Message, state: FSMContext):
     """  """
+
+    data = await state.get_data()
+    bisector:FrameXBisector = data.get("bisector")
     tester = True if message.text == "Yes" else False
 
     if bisector.launch_frame_not_found():
         bisector.bisect(tester=tester)
         logging.info(f"Step {bisector.step} => left: {bisector.left_frame} <-----> right: {bisector.right_frame}")
 
+        await state.update_data(bisector=bisector)
         await message.reply(
             "I see...so this is not the launch frame, but we are getting closer!",
             reply_markup=types.ReplyKeyboardRemove())
 
-        await has_it_launched(message)
+        await has_it_launched(message, state)
 
     else:
         await state.finish()
-        
+
         data = await state.get_data()
         current_user = data.get("current_user")
+        # await state.update_data(bisector=FrameXBisector())
         logging.info(f"Game finished successfuly for current user: {current_user} ")
 
         text = f"Cheers!! Take-off frame found at step {bisector.step} => {bisector.right_frame}"

@@ -1,7 +1,7 @@
 import logging
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import types
-from src.telegram.setup import bot, bisector
+from src.telegram.setup import bot
 from aiogram.dispatcher import FSMContext
 
 # States
@@ -12,7 +12,10 @@ class Form(StatesGroup):
     not_launched = State()
 
 
-async def has_it_launched(message: types.Message):
+async def has_it_launched(message: types.Message, state: FSMContext):
+
+    data = await state.get_data()
+    bisector = data.get("bisector")
 
     # Send Frame
     await bot.send_photo(
@@ -35,8 +38,8 @@ async def has_it_launched(message: types.Message):
 async def cancel_state(message: types.Message, state: FSMContext):
     """ Allow the user to cancel at any point by typing or commanding `cancel` """
 
-    current_state = await state.get_state()
-    if current_state is None: return
+    # current_state = await state.get_state()
+    # if current_state is None: return
 
     data = await state.get_data()
     current_user = data.get("current_user")
