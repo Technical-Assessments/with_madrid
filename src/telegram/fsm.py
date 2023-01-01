@@ -3,8 +3,9 @@ from aiogram.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from src.utils.framex_utils import FrameXBisector
+from src.framex_api.framex import FrameX
 from src.utils.telegram_utils import Form, has_it_launched, cancel_game, end_game
-from src.telegram.setup import dp, bot
+from src.telegram.setup import dp, bot, config
 
 
 @dp.message_handler(commands="start")
@@ -53,7 +54,9 @@ async def S003_send_first_frame(message: Message, state: FSMContext):
     """ Start the game by sending the first video frame """
 
     # Create instance of bisector to pass it across states
-    await state.update_data(bisector=FrameXBisector())
+    bisector = FrameXBisector()
+    await bisector.async_init()
+    await state.update_data(bisector=bisector)
 
     # Set next state & send first video frame
     await Form.not_launched.set()
@@ -65,7 +68,7 @@ async def S004_narrow_frames_down(message: Message, state: FSMContext):
     """ Ask the user to confirm launch status to narrow the launch frame down """
 
     data     : dict           = await state.get_data()
-    bisector : FrameXBisector = data.get("bisector")
+    bisector : FrameXBisector = data["bisector"]
     tester   : bool           = True if message.text == "Yes" else False
 
     if bisector.launch_frame_found():
@@ -81,6 +84,7 @@ async def S004_narrow_frames_down(message: Message, state: FSMContext):
 
     # Update current rame to trigger a new frame request
     bisector.current_frame = bisector.get_median()
-    
+    bisector.image_frame = await FrameX.get_video_frame(config.framex_video, bisector.current_frame)
+
     # Process next frame
     return await has_it_launched(message, state)

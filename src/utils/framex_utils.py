@@ -8,16 +8,23 @@ class FrameXBisector:
 
     def __init__(self):
         self.step           : int = 0
-        self.api            : FrameX = FrameX()
-        self.video          : Video = self.api.get_video(config.framex_video)
-        self.total_frames   : int = self.video.frames
-        self.left_frame     : int = 0
-        self.right_frame    : int = self.total_frames - 1
-        self._current_frame : int = self.get_median()
-        self.image_frame    : bytes = self.api.get_video_frame(self.video.name, self.current_frame)
+        self.video          : Video
+        self.total_frames   : int
+        self.left_frame     : int
+        self.right_frame    : int
+        self._current_frame : int
+        self.image_frame    : bytes
+
+    async def async_init(self):
+        self.video = await FrameX.get_video(config.framex_video)
+        self.total_frames = self.video.frames
+        self.left_frame = 0
+        self.right_frame = self.total_frames - 1
+        self._current_frame = self.get_median()
+        self.image_frame = await FrameX.get_video_frame(config.framex_video, self.current_frame)
 
     @property
-    def current_frame(self):
+    def current_frame(self) -> int:
         return self._current_frame
 
     @current_frame.setter
@@ -25,7 +32,6 @@ class FrameXBisector:
         """ Reactive method to retreive next video frame """
         self.step += 1
         self._current_frame = new_frame
-        self.image_frame = self.api.get_video_frame(self.video.name, new_frame)
 
     def launch_frame_found(self) -> bool:
         """ Boolean logic to narrow down the launch video frame """
